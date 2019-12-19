@@ -22,6 +22,7 @@
 	var/obj/item/paper/copy = null	//what's in the copier!
 	var/obj/item/photo/photocopy = null
 	var/obj/item/documents/doccopy = null
+  var/obj/item/poster/postercopy = null
 	var/copies = 1	//how many copies to print!
 	var/toner = 40 //how much toner is left! woooooo~
 	var/maxcopies = 10	//how many copies can be copied at once- idea shamelessly stolen from bs12's copier!
@@ -32,7 +33,7 @@
 /obj/machinery/photocopier/ui_interact(mob/user)
 	. = ..()
 	var/dat = "Photocopier<BR><BR>"
-	if(copy || photocopy || doccopy || (ass && (ass.loc == src.loc)))
+	if(copy || photocopy || doccopy || postercopy || (ass && (ass.loc == src.loc)))
 		dat += "<a href='byond://?src=[REF(src)];remove=1'>Remove Paper</a><BR>"
 		if(toner)
 			dat += "<a href='byond://?src=[REF(src)];copy=1'>Copy</a><BR>"
@@ -108,6 +109,16 @@
 				else
 					break
 			updateUsrDialog()
+    else if(postercopy)
+      for(var/i = 0, i < copies, i++)
+        if(toner >= 7 && !busy && postercopy)
+          new /obj/item/poster (loc, postercopy)
+          toner-= 7
+          busy = TRUE
+          addtimer(CALLBACK(src, .proc/reset_busy), 3 SECONDS)
+        else
+          break
+      updateUsrDialog()
 		else if(ass) //ASS COPY. By Miauw
 			for(var/i = 0, i < copies, i++)
 				var/icon/temp_img
@@ -147,6 +158,9 @@
 		else if(doccopy)
 			remove_photocopy(doccopy, usr)
 			doccopy = null
+    else if(postercopy)
+      remove_photocopy(postercopy, usr)
+      postercopy = null
 		else if(check_ass())
 			to_chat(ass, "<span class='notice'>You feel a slight pressure on your ass.</span>")
 		updateUsrDialog()
@@ -248,8 +262,17 @@
 
 	else if(istype(O, /obj/item/areaeditor/blueprints))
 		to_chat(user, "<span class='warning'>The Blueprint is too large to put into the copier. You need to find something else to record the document</span>")
-	else
-		return ..()
+
+  else if(istype(O, /obj/item/poster))
+    if(copier_empty())
+      if(!user.temporarilyRemoveItemFromInventory(O))
+        return
+      postercopy = O
+      do_insertion(O, user)
+    else
+      to_chat(user, "<span class='warning'>There is already something in [src]!</span>")
+  else
+      return ..()
 
 /obj/machinery/photocopier/obj_break(damage_flag)
 	. = ..()
