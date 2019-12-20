@@ -112,7 +112,8 @@
 		else if(postercopy)
 			for(var/i = 0, i < copies, i++)
 				if(toner >= 7 && !busy && postercopy)
-					new /obj/item/poster(loc, copyposter.poster_structure)
+					new /obj/item/poster(loc, postercopy.poster_structure)
+					new /obj/item/poster(src, postercopy.poster_structure)
 					toner-= 7
 					busy = TRUE
 					addtimer(CALLBACK(src, .proc/reset_busy), 3 SECONDS)
