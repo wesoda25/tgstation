@@ -66,6 +66,8 @@
 	var/list/datum/reagent/addiction_list = new/list()
 	/// various flags, see code\__DEFINES\reagents.dm
 	var/flags
+	///number of units metabolized
+	var/amount_metabolized = 0
 
 /datum/reagents/New(maximum=100, new_flags=0)
 	maximum_volume = maximum
@@ -375,10 +377,10 @@
 							need_mob_update += R.overdose_start(C)
 							log_game("[key_name(C)] has started overdosing on [R.name] at [R.volume] units.")
 					if(R.addiction_threshold)
-						if(R.amount_metabolized >= R.addiction_threshold && !is_type_in_list(R, cached_addictions))
+						if(amount_metabolized >= R.addiction_threshold && !is_type_in_list(R, cached_addictions))
 							var/datum/reagent/new_reagent = new R.type()
 							cached_addictions.Add(new_reagent)
-							log_game("[key_name(C)] has become addicted to [R.name] after metabolizing [R.amount_metabolized] units.")
+							log_game("[key_name(C)] has become addicted to [R.name] after metabolizing [amount_metabolized] units.")
 					if(R.overdosed)
 						need_mob_update += R.overdose_process(C)
 					if(is_type_in_list(R,cached_addictions))
