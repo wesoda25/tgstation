@@ -67,6 +67,8 @@ Runes can either be invoked by one's self or with many different cultists. Each 
 	var/invoke_damage = 0
 	/// If constructs can invoke it
 	var/construct_invoke = TRUE
+	/// If shades can invoke it
+	var/shade_invoke = FALSE
 	/// If the rune requires a keyword when scribed
 	var/req_keyword = FALSE
 	/// The actual keyword for the rune
@@ -108,7 +110,7 @@ Runes can either be invoked by one's self or with many different cultists. Each 
 		if(istype(user, /mob/living/simple_animal/hostile/construct/wraith/angelic) || istype(user, /mob/living/simple_animal/hostile/construct/juggernaut/angelic) || istype(user, /mob/living/simple_animal/hostile/construct/artificer/angelic))
 			to_chat(user, span_warning("You purge the rune!"))
 			qdel(src)
-		else if(construct_invoke || !IS_CULTIST(user)) //if you're not a cult construct we want the normal fail message
+		else if((isconstruct(user) && construct_invoke) || (isshade(user) && shade_invoke) || !IS_CULTIST(user)) //if you're not a cult construct/shade we want the normal fail message
 			attack_hand(user)
 		else
 			to_chat(user, span_warning("You are unable to invoke the rune!"))
@@ -141,7 +143,7 @@ structure_check() searches for nearby cultist structures required for the invoca
 	if(req_cultists > 1 || istype(src, /obj/effect/rune/convert))
 		var/list/things_in_range = range(1, src)
 		for(var/mob/living/L in things_in_range)
-			if(IS_CULTIST(L))
+			if(IS_CULTIST(L) && !isshade(L))
 				if(L == user)
 					continue
 				if(ishuman(L))
@@ -374,6 +376,7 @@ structure_check() searches for nearby cultist structures required for the invoca
 	color = RUNE_COLOR_TELEPORT
 	req_keyword = TRUE
 	light_power = 4
+	shade_invoke = TRUE
 	var/obj/effect/temp_visual/cult/portal/inner_portal //The portal "hint" for off-station teleportations
 	var/obj/effect/temp_visual/cult/rune_spawn/rune2/outer_portal
 	var/listkey
