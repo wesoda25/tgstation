@@ -11,12 +11,6 @@
 		return null
 	return format_text ? format_text(checked_area.name) : checked_area.name
 
-//We used to use linear regression to approximate the answer, but Mloc realized this was actually faster.
-//And lo and behold, it is, and it's more accurate to boot.
-///Calculate the hypotenuse cheaply (this should be in maths.dm)
-/proc/cheap_hypotenuse(Ax, Ay, Bx, By)
-	return sqrt(abs(Ax - Bx) ** 2 + abs(Ay - By) ** 2) //A squared + B squared = C squared
-
 /** toggle_organ_decay
  * inputs: first_object (object to start with)
  * outputs:
@@ -119,7 +113,7 @@
 
 /// Like add_image_to_client, but will add the image from a list of clients
 /proc/add_image_to_clients(image/image_to_remove, list/show_to)
-	for(var/client/add_to as anything in show_to)
+	for(var/client/add_to in show_to)
 		add_to.images += image_to_remove
 
 /// Removes an image from a client's `.images`. Useful as a callback.
@@ -128,7 +122,7 @@
 
 /// Like remove_image_from_client, but will remove the image from a list of clients
 /proc/remove_image_from_clients(image/image_to_remove, list/hide_from)
-	for(var/client/remove_from as anything in hide_from)
+	for(var/client/remove_from in hide_from)
 		remove_from.images -= image_to_remove
 
 
@@ -401,12 +395,8 @@
 
 	return pick(possible_loc)
 
-///Prevents power_failure message spam if a traitor purchases repeatedly.
-GLOBAL_VAR_INIT(power_failure_message_cooldown, 0)
-
 ///Disable power in the station APCs
 /proc/power_fail(duration_min, duration_max)
-	var/message_cooldown
 	for(var/obj/machinery/power/apc/current_apc as anything in GLOB.apcs_list)
 		if(!current_apc.cell || !SSmapping.level_trait(current_apc.z, ZTRAIT_STATION))
 			continue
@@ -415,9 +405,7 @@ GLOBAL_VAR_INIT(power_failure_message_cooldown, 0)
 			continue
 
 		var/duration = rand(duration_min,duration_max)
-		message_cooldown = max(duration, message_cooldown)
 		current_apc.energy_fail(duration)
-	GLOB.power_failure_message_cooldown = world.time + message_cooldown
 
 /**
  * Sends a round tip to a target. If selected_tip is null, a random tip will be sent instead (5% chance of it being silly).
