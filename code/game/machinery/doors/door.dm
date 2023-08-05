@@ -46,6 +46,12 @@
 	var/can_open_with_hands = TRUE /// Whether or not the door can be opened by hand (used for blast doors and shutters)
 	/// Whether or not this door can be opened through a door remote, ever
 	var/opens_with_door_remote = FALSE
+	/// Special operating mode for elevator doors
+	var/elevator_mode = FALSE
+	/// Current elevator status for processing
+	var/elevator_status
+	/// What specific lift ID do we link with?
+	var/elevator_linked_id
 
 /datum/armor/machinery_door
 	melee = 30
@@ -63,7 +69,12 @@
 	update_freelook_sight()
 	air_update_turf(TRUE, TRUE)
 	register_context()
-	GLOB.airlocks += src
+	if(elevator_mode)
+		if(elevator_linked_id)
+			elevator_status = LIFT_PLATFORM_LOCKED
+			GLOB.elevator_doors += src
+		else
+			stack_trace("Elevator door [src] has no linked elevator ID!")
 	spark_system = new /datum/effect_system/spark_spread
 	spark_system.set_up(2, 1, src)
 	if(density)
@@ -117,7 +128,8 @@
 
 /obj/machinery/door/Destroy()
 	update_freelook_sight()
-	GLOB.airlocks -= src
+	if(elevator_mode)
+		GLOB.elevator_doors -= src
 	if(spark_system)
 		qdel(spark_system)
 		spark_system = null
@@ -210,7 +222,9 @@
 	if(!density || (obj_flags & EMAGGED))
 		return
 
-	if(requiresID() && allowed(user))
+	if(elevator_mode && elevator_status == LIFT_PLATFORM_UNLOCKED)
+		open()
+	else if(requiresID() && allowed(user))
 		open()
 	else
 		do_animate("deny")
@@ -283,14 +297,17 @@
 	try_to_crowbar(tool, user, forced_open)
 	return TOOL_ACT_TOOLTYPE_SUCCESS
 
-/obj/machinery/door/attackby(obj/item/I, mob/living/user, params)
-	if(!user.combat_mode && istype(I, /obj/item/fireaxe))
-		try_to_crowbar(I, user, FALSE)
+/obj/machinery/door/attackby(obj/item/weapon, mob/living/user, params)
+	if(istype(weapon, /obj/item/access_key))
+		var/obj/item/access_key/key = weapon
+		return key.attempt_open_door(user, src)
+	else if(!user.combat_mode && istype(weapon, /obj/item/fireaxe))
+		try_to_crowbar(weapon, user, FALSE)
 		return TRUE
-	else if(I.item_flags & NOBLUDGEON || user.combat_mode)
+	else if(weapon.item_flags & NOBLUDGEON || user.combat_mode)
 		return ..()
-	else if(!user.combat_mode && istype(I, /obj/item/stack/sheet/mineral/wood))
-		return ..() // we need this so our can_barricade element can be called using COMSIG_PARENT_ATTACKBY
+	else if(!user.combat_mode && istype(weapon, /obj/item/stack/sheet/mineral/wood))
+		return ..() // we need this so our can_barricade element can be called using COMSIG_ATOM_ATTACKBY
 	else if(try_to_activate_door(user))
 		return TRUE
 	return ..()
@@ -363,10 +380,10 @@
 	use_power(active_power_usage)
 	do_animate("opening")
 	set_opacity(0)
-	sleep(0.5 SECONDS)
+	SLEEP_NOT_DEL(0.5 SECONDS)
 	set_density(FALSE)
 	flags_1 &= ~PREVENT_CLICK_UNDER_1
-	sleep(0.5 SECONDS)
+	SLEEP_NOT_DEL(0.5 SECONDS)
 	layer = initial(layer)
 	update_appearance()
 	set_opacity(0)
@@ -400,10 +417,10 @@
 
 	do_animate("closing")
 	layer = closingLayer
-	sleep(0.5 SECONDS)
+	SLEEP_NOT_DEL(0.5 SECONDS)
 	set_density(TRUE)
 	flags_1 |= PREVENT_CLICK_UNDER_1
-	sleep(0.5 SECONDS)
+	SLEEP_NOT_DEL(0.5 SECONDS)
 	update_appearance()
 	if(visible && !glass)
 		set_opacity(1)

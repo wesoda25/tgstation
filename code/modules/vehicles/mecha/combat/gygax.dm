@@ -3,7 +3,6 @@
 	name = "\improper Gygax"
 	icon_state = "gygax"
 	base_icon_state = "gygax"
-	allow_diagonal_movement = TRUE
 	movedelay = 3
 	max_integrity = 250
 	internals_req_access = list(ACCESS_MECH_SCIENCE, ACCESS_MECH_SECURITY)
@@ -71,6 +70,7 @@
 	operation_req_access = list(ACCESS_SYNDICATE)
 	internals_req_access = list(ACCESS_SYNDICATE)
 	wreckage = /obj/structure/mecha_wreckage/gygax/dark
+	mecha_flags = CANSTRAFE | IS_ENCLOSED | HAS_LIGHTS | MMI_COMPATIBLE
 	max_equip_by_category = list(
 		MECHA_UTILITY = 2,
 		MECHA_POWER = 1,
@@ -98,9 +98,11 @@
 	. = ..()
 	max_ammo()
 
-/obj/vehicle/sealed/mecha/gygax/dark/add_cell(obj/item/stock_parts/cell/C=null)
-	if(C)
-		C.forceMove(src)
-		cell = C
-		return
+/obj/vehicle/sealed/mecha/gygax/dark/add_cell()
 	cell = new /obj/item/stock_parts/cell/bluespace(src)
+
+/obj/vehicle/sealed/mecha/gygax/dark/add_scanmod()
+	scanmod = new /obj/item/stock_parts/scanning_module/triphasic(src)
+
+/obj/vehicle/sealed/mecha/gygax/dark/add_capacitor()
+	capacitor = new /obj/item/stock_parts/capacitor/quadratic(src)
