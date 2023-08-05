@@ -96,6 +96,8 @@
 #define BLOOD_CLANS 21
 /// Stops species from spawning with tongue. Doesn't actually make the species able to talk with no tongue
 #define NO_TONGUE 22
+/// allows a species to choose an age outside of mix/max defines. 
+#define UNIQUE_LIFESPAN 23
 
 
 //organ slots

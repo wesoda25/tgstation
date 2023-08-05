@@ -5,7 +5,12 @@
 	say_mod = "rattles"
 	sexes = 0
 	meat = /obj/item/stack/sheet/mineral/plasma
-	species_traits = list(NOBLOOD,NOTRANSSTING, HAS_BONE)
+	species_traits = list(
+		NOBLOOD,
+		NOTRANSSTING,
+		HAS_BONE,
+		UNIQUE_LIFESPAN,
+	)
 	// plasmemes get hard to wound since they only need a severe bone wound to dismember, but unlike skellies, they can't pop their bones back into place
 	inherent_traits = list(
 		TRAIT_ADVANCEDTOOLUSER,
@@ -58,6 +63,8 @@
 
 	/// If the bones themselves are burning clothes won't help you much
 	var/internal_fire = FALSE
+	/// plasmamen can live much longer than other lifeforms!
+	var/custom_age_max = 299
 
 /datum/species/plasmaman/on_species_gain(mob/living/carbon/C, datum/species/old_species, pref_load)
 	. = ..()
